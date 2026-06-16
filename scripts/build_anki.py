@@ -18,7 +18,7 @@ import markdown
 import genanki
 
 ROOT = "/Users/yu/Downloads/行動科学"
-OUT = os.path.join(ROOT, "行動科学BRS_全章419問.apkg")
+OUT = os.path.join(ROOT, "行動科学BRS_全章417問.apkg")
 
 # 章番号(2桁文字列) → デッキ表示テーマ（Ch17 は旧名 グループ20 を心理療法に正規化）
 THEME = {
