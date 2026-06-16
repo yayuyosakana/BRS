@@ -10,3 +10,7 @@ BRS Behavioral Science (8e).pdf
 # 教員配布の課題シート（一次資料）
 *課題シート*.docx
 *課題シート*.doc
+
+# Python
+__pycache__/
+*.pyc
