@@ -63,13 +63,33 @@ MODEL = genanki.Model(
 
 _md = markdown.Markdown(extensions=["tables", "fenced_code", "sane_lists", "nl2br"])
 
+_PIPE_ROW = re.compile(r"^\s*\|.*\|\s*$")
+_DELIM_ROW = re.compile(r"^\s*\|[\s:|\-]+\|\s*$")   # | --- | --- | 区切り行
+
+
+def _pad_tables(text: str) -> str:
+    """表の直前に空行が無いと nl2br が表を前段落へ巻き込み <br> 化して崩れる。
+    『テキスト行 → 表ヘッダ行 → 区切り行』を検出し、表の直前に空行を補う。"""
+    lines = text.split("\n")
+    out = []
+    for i, line in enumerate(lines):
+        is_header = (_PIPE_ROW.match(line) and not _DELIM_ROW.match(line)
+                     and i + 1 < len(lines) and _DELIM_ROW.match(lines[i + 1]))
+        if is_header and out and out[-1].strip() and not _PIPE_ROW.match(out[-1]):
+            out.append("")                     # 直前が非空・非表行なら空行を挿入
+        out.append(line)
+    return "\n".join(out)
+
 
 def to_html(text: str) -> str:
     _md.reset()
-    return _md.convert(text.strip())
+    return _md.convert(_pad_tables(text.strip()))
 
 
-HEADING = re.compile(r"^##\s*問題\s*(\d+)\s*（\s*(.*?)\s*）\s*(.*?)\s*$", re.M)
+# タイトルは見出しと同じ行のみ（[ \t]で改行を跨がせない）。
+# \s を使うと \s が改行も食い、インラインタイトルが無い見出しで
+# 次行のシナリオ本文をタイトルとして吸い込んでしまう（Ch17で問題文消失バグ）。
+HEADING = re.compile(r"^##[ \t]*問題[ \t]*(\d+)[ \t]*（[ \t]*(.*?)[ \t]*）[ \t]*([^\n]*?)[ \t]*$", re.M)
 SEIKAI = re.compile(r"\*\*【正答】\*\*")
 TANTOU = re.compile(r"\*\*【担当グループ】\*\*.*?$", re.M)
 FILENAME = re.compile(r"レビューテスト_Ch(\d{2})_")
